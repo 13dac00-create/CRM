@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jana CRM · TargetCool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root {
+  --bg:#0d0f14;--surface:#161a23;--surface2:#1e2433;--border:#2a3145;
+  --accent:#4f8fff;--teal:#00e5c0;--gold:#ffb84d;--green:#00c896;
+  --red:#ff5a5a;--text:#e8ecf4;--muted:#6b7a99;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;max-width:480px;margin:0 auto;min-height:100vh}
+
+.header{padding:18px 20px 0;position:sticky;top:0;background:var(--bg);z-index:100;border-bottom:1px solid var(--border);padding-bottom:12px}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.logo{font-family:'DM Serif Display',serif;font-size:20px}.logo span{color:var(--accent)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px;animation:pulse 2s infinite}
+.sync-dot.syncing{background:var(--gold);animation:spin 1s linear infinite}
+.sync-dot.error{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px}
+.stat{background:var(--surface);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--border)}
+.stat-n{font-size:22px;font-weight:600}.blue{color:var(--accent)}.orange{color:var(--gold)}.green{color:var(--green)}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+
+.list{padding:0 20px 100px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border-radius:16px;border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
+.card.expanded{border-color:var(--accent)}
+.card-head{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.card-meta{flex:1;min-width:0}
+.card-name{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:50px;flex-shrink:0}
+
+.s0{background:#1e2433;color:var(--muted)}.s1{background:rgba(79,143,255,.15);color:var(--accent)}
+.s2{background:rgba(0,229,192,.12);color:var(--teal)}.s3{background:rgba(0,229,192,.12);color:var(--teal)}
+.s4{background:rgba(255,184,77,.15);color:var(--gold)}.s5{background:rgba(255,184,77,.15);color:var(--gold)}
+.s6{background:rgba(0,200,150,.15);color:var(--green)}.s7{background:rgba(255,90,90,.12);color:var(--red)}
+.av0{background:#1e2433;color:var(--muted)}.av1{background:rgba(79,143,255,.2);color:var(--accent)}
+.av2,.av3{background:rgba(0,229,192,.15);color:var(--teal)}
+.av4,.av5{background:rgba(255,184,77,.2);color:var(--gold)}
+.av6{background:rgba(0,200,150,.2);color:var(--green)}.av7{background:rgba(255,90,90,.15);color:var(--red)}
+
+.card-detail{display:none;border-top:1px solid var(--border)}
+.card-detail.open{display:block}
+.dsec{padding:13px 16px;border-bottom:1px solid var(--border)}
+.dsec:last-child{border:none}
+.stitle{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.irow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ilbl{font-size:12px;color:var(--muted)}.ival{font-size:13px;font-weight:500;text-align:right;max-width:60%}
+.next-box{background:var(--surface2);border-radius:10px;padding:11px;display:flex;gap:10px;align-items:flex-start}
+.next-txt{font-size:13px;font-weight:500}.next-when{font-size:11px;color:var(--accent);margin-top:2px}
+.overdue{color:var(--red)!important}.today{color:var(--gold)!important}
+
+.hitem{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
+.hdot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dcall{background:var(--accent)}.dmeet{background:var(--teal)}.demail{background:var(--gold)}
+.hdate{font-size:11px;color:var(--muted)}.htxt{font-size:13px;margin-top:1px}
+.hres{font-size:11px;color:var(--teal);margin-top:2px}
+
+.stage-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sopt{padding:7px 4px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s}
+.sopt.sel{border-color:var(--accent);color:var(--accent);background:rgba(79,143,255,.1)}
+
+.arow{display:flex;gap:6px;padding:11px 16px;flex-wrap:wrap}
+.abtn{flex:1;min-width:0;padding:10px 6px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-align:center;white-space:nowrap}
+.abtn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.abtn.warn{background:rgba(255,184,77,.15);border-color:var(--gold);color:var(--gold)}
+.abtn.danger{background:rgba(255,90,90,.1);border-color:var(--red);color:var(--red)}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:24px 24px 0 0;padding:22px 20px 40px;width:100%;max-width:480px;margin:0 auto;border:1px solid var(--border);border-bottom:none;animation:slideUp .25s ease;max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mtitle{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:18px}
+.field{margin-bottom:13px}
+.field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);display:block;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field select option{background:var(--surface)}
+.field textarea{resize:none;height:76px}
+.mbtns{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{flex:1;padding:13px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.btn-save{flex:2;padding:13px;border-radius:12px;background:var(--accent);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.btn-save.teal{background:var(--teal);color:#0d0f14}
+.btn-save.warn{background:var(--gold);color:#0d0f14}
+.saving-indicator{text-align:center;font-size:12px;color:var(--gold);margin-top:8px;min-height:18px}
+
+/* CONFIRM DIALOG */
+.confirm-box{background:var(--surface2);border-radius:16px;padding:20px;margin:0 20px 20px;border:1px solid var(--border)}
+.confirm-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.confirm-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+.confirm-btns{display:flex;gap:10px}
+.cbtn{flex:1;padding:12px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.cbtn.cancel{background:var(--surface);color:var(--muted)}
+.cbtn.delete{background:var(--red);color:#fff}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e2433;border:1px solid var(--border);border-radius:50px;padding:10px 20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.sheet-status{font-size:11px;padding:0 20px 10px;color:var(--muted);display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Jana<span>CRM</span> <span class="sync-dot" id="dot"></span></div>
+    <button class="btn-add" onclick="openAdd()">+ Klinika</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="filterTab('all',this)">Všetky</div>
+    <div class="tab" onclick="filterTab('Nový',this)">Nový</div>
+    <div class="tab" onclick="filterTab('Kontaktovaný',this)">Kontakt</div>
+    <div class="tab" onclick="filterTab('Demo',this)">Demo</div>
+    <div class="tab" onclick="filterTab('Ponuka',this)">Ponuka</div>
+    <div class="tab" onclick="filterTab('Uzavreté ✓',this)">✓</div>
+    <div class="tab" onclick="filterTab('Stratené ✗',this)">✗</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n blue" id="s-all">0</div><div class="stat-l">Kliník</div></div>
+  <div class="stat"><div class="stat-n orange" id="s-active">0</div><div class="stat-l">Aktívne</div></div>
+  <div class="stat"><div class="stat-n green" id="s-closed">0</div><div class="stat-l">Uzavreté</div></div>
+</div>
+<div class="sheet-status" id="sheet-status">⬤ &nbsp;Pripájam sa na Sheets...</div>
+
+<div class="list" id="list"></div>
+
+<!-- ADD / EDIT KLINIKA MODAL -->
+<div class="overlay" id="modal-add">
+<div class="modal">
+  <div class="mtitle" id="modal-add-title">Nová klinika</div>
+  <input type="hidden" id="f-original-name"/>
+  <div class="field"><label>Názov kliniky *</label><input id="f-name" placeholder="Klinika Belladerm Bratislava"/></div>
+  <div class="field"><label>Kontaktná osoba</label><input id="f-contact" placeholder="Dr. Jana Nováková"/></div>
+  <div class="field"><label>Telefón</label><input id="f-phone" type="tel" placeholder="+421 900 000 000"/></div>
+  <div class="field"><label>Mesto</label><input id="f-city" placeholder="Bratislava"/></div>
+  <div class="field"><label>Procedúry</label><input id="f-proc" placeholder="RF mikroneedling, laser..."/></div>
+  <div class="field"><label>Aktívne látky</label><input id="f-act" placeholder="Exozómy, HA, PRP..."/></div>
+  <div class="field"><label>Fáza predaja</label>
+    <select id="f-faza">
+      <option>Nový</option><option>Kontaktovaný</option><option>Demo dohodnuté</option>
+      <option>Demo prebehlo</option><option>Ponuka odoslaná</option>
+      <option>Rozhodnutie čaká</option><option>Uzavreté ✓</option><option>Stratené ✗</option>
+    </select>
+  </div>
+  <div class="field"><label>Ďalší krok</label><textarea id="f-note" placeholder="napr. Dohodnúť demo..."></textarea></div>
+  <div class="field"><label>Follow-up dátum</label><input id="f-date" type="date"/></div>
+  <div class="mbtns">
+    <button class="btn-cancel" onclick="closeAdd()">Zrušiť</button>
+    <button class="btn-save" id="btn-save-klinika" onclick="saveKlinika()">💾 Uložiť do Sheets</button>
+  </div>
+  <div class="saving-indicator" id="save-ind"></div>
+</div>
+</div>
+
+<!-- ADD KONTAKT MODAL -->
+<div class="overlay" id="modal-kontakt">
+<div class="modal">
+  <div class="mtitle">Pridať kontakt</div>
+  <div class="field"><label>Klinika</label><input id="k-klinika" readonly style="opacity:.7"/></div>
+  <div class="field"><label>Typ</label>
+    <select id="k-typ">
+      <option>📞 Telefonát</option><option>🤝 Stretnutie</option>
+      <option>📧 Email</option><option>💬 Správa</option>
+    </select>
+  </div>
+  <div class="field"><label>Obsah rozhovoru</label><textarea id="k-obsah" placeholder="O čom bol hovor / stretnutie..."></textarea></div>
+  <div class="field"><label>Výsledok / ďalší krok</label><input id="k-vysledok" placeholder="napr. Pošlem cenu budúci týždeň"/></div>
+  <div class="field"><label>Dátum ďalšieho kontaktu</label><input id="k-date" type="date"/></div>
+  <div class="mbtns">
+    <button class="btn-cancel" onclick="closeKontakt()">Zrušiť</button>
+    <button class="btn-save teal" onclick="saveKontakt()">💾 Uložiť do Sheets</button>
+  </div>
+  <div class="saving-indicator" id="k-ind"></div>
+</div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="overlay" id="modal-delete">
+<div class="modal">
+  <div class="mtitle">Vymazať kliniku?</div>
+  <div class="confirm-box">
+    <div class="confirm-title" id="del-name"></div>
+    <div class="confirm-sub">Táto akcia vymaže kliniku z Google Sheets. História kontaktov zostane zachovaná.</div>
+    <div class="confirm-btns">
+      <button class="cbtn cancel" onclick="closeDelete()">Zrušiť</button>
+      <button class="cbtn delete" onclick="confirmDelete()">🗑 Vymazať</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwJMHFlsKxJUqvTIZLDC5gaZ-Ccq6Gt56pvvto7BWR683HxLnWWHRAwBraTEGKp9w/exec';
+var STAGES = ['Nový','Kontaktovaný','Demo dohodnuté','Demo prebehlo','Ponuka odoslaná','Rozhodnutie čaká','Uzavreté ✓','Stratené ✗'];
+var TYPE_DOT = {'📞 Telefonát':'dcall','🤝 Stretnutie':'dmeet','📧 Email':'demail','💬 Správa':'demail'};
+
+var state = {
+  data: JSON.parse(localStorage.getItem('janacrm_data') || '[]'),
+  history: JSON.parse(localStorage.getItem('janacrm_hist') || '[]'),
+  expanded: null,
+  activeFilter: 'all',
+  kontaktTarget: null,
+  deleteTarget: null,
+  editMode: false
+};
+
+// ─── SHEETS API ──────────────────────────────────────────
+function setSyncing(v) {
+  var d = document.getElementById('dot');
+  d.className = 'sync-dot' + (v==='sync'?' syncing':v==='error'?' error':'');
+}
+function updateStatus(msg, ok) {
+  var el = document.getElementById('sheet-status');
+  el.innerHTML = (ok?'🟢':'🔴') + ' &nbsp;' + msg;
+  el.style.color = ok ? 'var(--green)' : 'var(--red)';
+}
+async function callSheets(action, data) {
+  setSyncing('sync');
+  try {
+    var res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain'},
+      body: JSON.stringify({action, data})
+    });
+    var json = await res.json();
+    setSyncing('ok');
+    if (!json.ok) throw new Error(json.error || 'Chyba');
+    updateStatus('Sheets sync · ' + new Date().toLocaleTimeString('sk'), true);
+    return json;
+  } catch(e) {
+    setSyncing('error');
+    updateStatus('Chyba: ' + e.message, false);
+    toast('❌ ' + e.message);
+    return null;
+  }
+}
+async function fetchFromSheets() {
+  setSyncing('sync');
+  try {
+    var res = await fetch(WEBAPP_URL + '?action=getKliniky');
+    var json = await res.json();
+    if (json.ok && json.kliniky.length) {
+      json.kliniky.forEach(function(k) {
+        var ex = state.data.find(function(x){ return x.name === k.name; });
+        if (!ex) state.data.push(Object.assign({history:[]}, k));
+        else Object.assign(ex, k);
+      });
+      saveLocal(); render();
+      setSyncing('ok');
+      updateStatus('Načítané zo Sheets · ' + json.kliniky.length + ' kliník', true);
+    } else {
+      setSyncing('ok');
+      updateStatus('Sheets pripojené', true);
+    }
+  } catch(e) {
+    setSyncing('error');
+    updateStatus('Chyba: ' + e.message, false);
+  }
+}
+
+// ─── LOCAL SAVE ──────────────────────────────────────────
+function saveLocal() {
+  localStorage.setItem('janacrm_data', JSON.stringify(state.data));
+  localStorage.setItem('janacrm_hist', JSON.stringify(state.history));
+}
+
+// ─── ADD / EDIT KLINIKA ──────────────────────────────────
+function openAdd() {
+  state.editMode = false;
+  document.getElementById('modal-add-title').textContent = 'Nová klinika';
+  document.getElementById('btn-save-klinika').textContent = '💾 Uložiť do Sheets';
+  document.getElementById('f-original-name').value = '';
+  ['f-name','f-contact','f-phone','f-city','f-proc','f-act','f-note'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('f-faza').value = 'Nový';
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function openEdit(name) {
+  var k = state.data.find(function(x){ return x.name === name; });
+  if (!k) return;
+  state.editMode = true;
+  document.getElementById('modal-add-title').textContent = 'Upraviť kliniku';
+  document.getElementById('btn-save-klinika').textContent = '✏️ Uložiť zmeny';
+  document.getElementById('f-original-name').value = k.name;
+  document.getElementById('f-name').value = k.name || '';
+  document.getElementById('f-contact').value = k.contact || '';
+  document.getElementById('f-phone').value = k.phone || '';
+  document.getElementById('f-city').value = k.city || '';
+  document.getElementById('f-proc').value = k.procedures || '';
+  document.getElementById('f-act').value = k.actives || '';
+  document.getElementById('f-faza').value = k.faza || 'Nový';
+  document.getElementById('f-note').value = k.note || '';
+  document.getElementById('f-date').value = k.followup || new Date().toISOString().split('T')[0];
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function closeAdd() { document.getElementById('modal-add').classList.remove('open'); }
+
+async function saveKlinika() {
+  var name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('⚠️ Zadaj názov kliniky'); return; }
+
+  var k = {
+    name,
+    contact:    document.getElementById('f-contact').value.trim(),
+    phone:      document.getElementById('f-phone').value.trim(),
+    city:       document.getElementById('f-city').value.trim(),
+    procedures: document.getElementById('f-proc').value.trim(),
+    actives:    document.getElementById('f-act').value.trim(),
+    faza:       document.getElementById('f-faza').value,
+    note:       document.getElementById('f-note').value.trim(),
+    followup:   document.getElementById('f-date').value,
+    originalName: document.getElementById('f-original-name').value
+  };
+
+  if (state.editMode) {
+    // Update local
+    var ex = state.data.find(function(x){ return x.name === k.originalName; });
+    if (ex) Object.assign(ex, k);
+    saveLocal(); render(); closeAdd();
+    toast('✏️ Ukladám zmeny...');
+    var r = await callSheets('updateKlinika', k);
+    if (r) toast('✅ Zmeny uložené do Sheets');
+  } else {
+    // New
+    var newK = Object.assign({ id: Date.now(), contacts: 0, history: [] }, k);
+    state.data.unshift(newK);
+    saveLocal(); render(); closeAdd();
+    toast('💾 Ukladám do Sheets...');
+    var r = await callSheets('addKlinika', k);
+    if (r) toast('✅ ' + name + ' uložená do Sheets');
+  }
+}
+
+// ─── DELETE ──────────────────────────────────────────────
+function openDelete(name) {
+  state.deleteTarget = name;
+  document.getElementById('del-name').textContent = name;
+  document.getElementById('modal-delete').classList.add('open');
+}
+function closeDelete() { document.getElementById('modal-delete').classList.remove('open'); }
+
+async function confirmDelete() {
+  var name = state.deleteTarget;
+  // Local remove
+  state.data = state.data.filter(function(x){ return x.name !== name; });
+  if (state.expanded === name) state.expanded = null;
+  saveLocal(); render(); closeDelete();
+  toast('🗑 Vymazávam zo Sheets...');
+  var r = await callSheets('deleteKlinika', { name });
+  if (r) toast('✅ ' + name + ' vymazaná');
+}
+
+// ─── KONTAKT ─────────────────────────────────────────────
+function openKontakt(name) {
+  state.kontaktTarget = name;
+  document.getElementById('k-klinika').value = name;
+  document.getElementById('k-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('k-obsah').value = '';
+  document.getElementById('k-vysledok').value = '';
+  document.getElementById('modal-kontakt').classList.add('open');
+}
+function closeKontakt() { document.getElementById('modal-kontakt').classList.remove('open'); }
+
+async function saveKontakt() {
+  var obsah = document.getElementById('k-obsah').value.trim();
+  if (!obsah) { toast('⚠️ Zadaj obsah rozhovoru'); return; }
+  var entry = {
+    klinika:  state.kontaktTarget,
+    typ:      document.getElementById('k-typ').value,
+    obsah,
+    vysledok: document.getElementById('k-vysledok').value.trim(),
+    nextDate: document.getElementById('k-date').value,
+    date:     new Date().toISOString().split('T')[0]
+  };
+  var k = state.data.find(function(x){ return x.name === entry.klinika; });
+  if (k) {
+    k.history = k.history || [];
+    k.history.unshift(entry);
+    k.contacts = (k.contacts||0) + 1;
+    if (entry.vysledok) k.note = entry.vysledok;
+    if (entry.nextDate) k.followup = entry.nextDate;
+    if (k.faza === 'Nový') k.faza = 'Kontaktovaný';
+  }
+  state.history.unshift(entry);
+  saveLocal(); render(); closeKontakt();
+  toast('💾 Odosiela sa...');
+  var r = await callSheets('addKontakt', entry);
+  if (r) toast('✅ Kontakt uložený do Sheets');
+}
+
+// ─── FÁZA ────────────────────────────────────────────────
+async function setFaza(name, faza) {
+  var k = state.data.find(function(x){ return x.name === name; });
+  if (k) { k.faza = faza; saveLocal(); render(); }
+  await callSheets('updateFaza', {name, faza});
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function filterTab(f, el) {
+  state.activeFilter = f;
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  render();
+}
+function stageIdx(faza) { return STAGES.indexOf(faza); }
+function getInitials(n) { return n.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2); }
+function fmtDate(s) { if(!s) return ''; var p=s.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
+function dateStatus(s) {
+  if(!s) return '';
+  var today = new Date().toISOString().split('T')[0];
+  return s < today ? 'overdue' : s === today ? 'today' : '';
+}
+function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+
+function render() {
+  document.getElementById('s-all').textContent = state.data.length;
+  document.getElementById('s-active').textContent = state.data.filter(function(k){ var i=stageIdx(k.faza); return i>=1&&i<=5; }).length;
+  document.getElementById('s-closed').textContent = state.data.filter(function(k){ return k.faza==='Uzavreté ✓'; }).length;
+
+  var filtered = state.activeFilter === 'all'
+    ? state.data
+    : state.data.filter(function(k){ return k.faza && k.faza.includes(state.activeFilter); });
+
+  var list = document.getElementById('list');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🏥</div><div>Žiadne kliniky</div></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(k) {
+    var si = Math.max(0, stageIdx(k.faza));
+    var exp = state.expanded === k.name;
+    var ds = dateStatus(k.followup);
+
+    var histHTML = (k.history||[]).slice(0,5).map(function(h){
+      return '<div class="hitem"><div class="hdot '+(TYPE_DOT[h.typ]||'dcall')+'"></div><div>' +
+        '<div class="hdate">'+(h.typ||'')+' · '+(h.date?fmtDate(h.date):'')+'</div>' +
+        '<div class="htxt">'+h.obsah+'</div>' +
+        (h.vysledok?'<div class="hres">→ '+h.vysledok+'</div>':'') +
+        '</div></div>';
+    }).join('') || '<div style="font-size:12px;color:var(--muted)">Žiadne záznamy</div>';
+
+    var stageOpts = STAGES.map(function(s){
+      return '<div class="sopt'+(k.faza===s?' sel':'')+'" onclick="event.stopPropagation();setFaza(\''+esc(k.name)+'\',\''+s+'\')">'+s+'</div>';
+    }).join('');
+
+    return '<div class="card'+(exp?' expanded':'')+'" id="card-'+esc(k.name)+'">' +
+      '<div class="card-head" onclick="toggleExp(\''+esc(k.name)+'\')">' +
+        '<div class="avatar av'+si+'">'+getInitials(k.name)+'</div>' +
+        '<div class="card-meta"><div class="card-name">'+k.name+'</div>' +
+        '<div class="card-sub">'+(k.contact||'')+(k.city?' · '+k.city:'')+'</div></div>' +
+        '<div class="badge s'+si+'">'+(k.faza||'Nový')+'</div>' +
+      '</div>' +
+      '<div class="card-detail'+(exp?' open':'')+'">' +
+        ((k.note||k.followup) ? '<div class="dsec"><div class="stitle">Ďalší krok</div><div class="next-box"><div style="font-size:18px">🎯</div><div>' +
+          (k.note?'<div class="next-txt">'+k.note+'</div>':'') +
+          (k.followup?'<div class="next-when '+ds+'">'+(ds==='overdue'?'⚠️ ':ds==='today'?'🔔 ':'')+fmtDate(k.followup)+'</div>':'') +
+          '</div></div></div>' : '') +
+        '<div class="dsec"><div class="stitle">Info</div>' +
+          (k.phone?'<div class="irow"><span class="ilbl">📞</span><span class="ival"><a href="tel:'+k.phone+'" style="color:var(--accent);text-decoration:none">'+k.phone+'</a></span></div>':'') +
+          (k.procedures?'<div class="irow"><span class="ilbl">💉 Procedúry</span><span class="ival" style="font-size:12px">'+k.procedures+'</span></div>':'') +
+          (k.actives?'<div class="irow"><span class="ilbl">🧪 Aktívne látky</span><span class="ival" style="font-size:12px">'+k.actives+'</span></div>':'') +
+          (k.contacts?'<div class="irow"><span class="ilbl">📊 Kontaktov</span><span class="ival">'+k.contacts+'</span></div>':'') +
+        '</div>' +
+        '<div class="dsec"><div class="stitle">Fáza predaja</div><div class="stage-sel">'+stageOpts+'</div></div>' +
+        '<div class="dsec"><div class="stitle">História kontaktov</div>'+histHTML+'</div>' +
+        '<div class="arow">' +
+          '<button class="abtn" onclick="event.stopPropagation();openKontakt(\''+esc(k.name)+'\')">+ Kontakt</button>' +
+          '<button class="abtn warn" onclick="event.stopPropagation();openEdit(\''+esc(k.name)+'\')">✏️ Upraviť</button>' +
+          (k.phone?'<button class="abtn pri" onclick="event.stopPropagation();location.href=\'tel:'+k.phone+'\'">📞</button>':'') +
+          '<button class="abtn danger" onclick="event.stopPropagation();openDelete(\''+esc(k.name)+'\')">🗑</button>' +
+        '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleExp(name) {
+  state.expanded = (state.expanded === name) ? null : name;
+  render();
+}
+
+var toastTimer;
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+render();
+fetchFromSheets();
+</script>
+</body>
+</html>
